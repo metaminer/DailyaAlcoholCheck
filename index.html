@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>음주 기록 달력</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .day-cell { min-height: 52px; }
+    .modal-enter { animation: slideUp 0.25s ease-out; }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- 헤더 -->
+  <header class="bg-white shadow-sm sticky top-0 z-20">
+    <div class="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
+      <h1 class="text-lg font-bold text-indigo-600">🍶 음주 기록</h1>
+      <nav class="flex gap-1">
+        <a href="index.html" class="px-3 py-1.5 text-sm font-semibold bg-indigo-50 text-indigo-600 rounded-lg">달력</a>
+        <a href="stats.html" class="px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition">통계</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-4 py-5 space-y-4">
+
+    <!-- 달력 카드 -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+
+      <!-- 월 네비게이션 -->
+      <div class="flex items-center justify-between px-6 py-5">
+        <button id="prevBtn" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <div class="text-center">
+          <h2 id="monthLabel" class="text-base font-bold text-gray-800"></h2>
+          <button id="todayBtn" class="text-xs text-indigo-400 hover:text-indigo-600 mt-0.5 transition">오늘로 이동</button>
+        </div>
+        <button id="nextBtn" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- 요일 헤더 -->
+      <div class="grid grid-cols-7 border-t border-gray-50">
+        <div class="text-center text-xs font-medium text-red-400 py-2">일</div>
+        <div class="text-center text-xs font-medium text-gray-400 py-2">월</div>
+        <div class="text-center text-xs font-medium text-gray-400 py-2">화</div>
+        <div class="text-center text-xs font-medium text-gray-400 py-2">수</div>
+        <div class="text-center text-xs font-medium text-gray-400 py-2">목</div>
+        <div class="text-center text-xs font-medium text-gray-400 py-2">금</div>
+        <div class="text-center text-xs font-medium text-blue-400 py-2">토</div>
+      </div>
+
+      <!-- 달력 그리드 -->
+      <div id="calendarGrid" class="grid grid-cols-7 border-t border-gray-50 px-2 pb-3"></div>
+
+    </div>
+
+    <!-- 범례 -->
+    <div class="bg-white rounded-2xl shadow-sm px-5 py-3.5 flex items-center gap-5 text-xs text-gray-500">
+      <span class="font-medium text-gray-600">음주량</span>
+      <div class="flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>1~2잔
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span>3~5잔
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>6잔+
+      </div>
+    </div>
+
+    <!-- 이번 달 요약 -->
+    <div class="bg-white rounded-2xl shadow-sm px-5 py-4">
+      <p class="text-xs font-medium text-gray-400 mb-3">이번 달 요약</p>
+      <div class="grid grid-cols-3 gap-3 text-center">
+        <div class="bg-indigo-50 rounded-xl py-3">
+          <div id="monthDrinkDays" class="text-2xl font-bold text-indigo-600">-</div>
+          <div class="text-xs text-indigo-400 mt-0.5">음주일</div>
+        </div>
+        <div class="bg-amber-50 rounded-xl py-3">
+          <div id="monthTotalGlasses" class="text-2xl font-bold text-amber-500">-</div>
+          <div class="text-xs text-amber-400 mt-0.5">총 잔</div>
+        </div>
+        <div class="bg-green-50 rounded-xl py-3">
+          <div id="monthSoberDays" class="text-2xl font-bold text-green-500">-</div>
+          <div class="text-xs text-green-400 mt-0.5">절주일</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 기록 모달 -->
+  <div id="modal" class="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 hidden" id="modalOverlay">
+    <div class="modal-enter bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-sm shadow-2xl">
+
+      <!-- 모달 헤더 -->
+      <div class="flex items-center justify-between px-6 pt-6 pb-2">
+        <div>
+          <h3 id="modalTitle" class="text-lg font-bold text-gray-800"></h3>
+          <p id="modalDay" class="text-xs text-gray-400 mt-0.5"></p>
+        </div>
+        <button id="closeModal" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="recordForm" class="px-6 pb-8 pt-4 space-y-5">
+        <input type="hidden" id="recordId">
+        <input type="hidden" id="recordDate">
+
+        <!-- 주종 선택 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-2.5">주종</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" class="drink-btn py-2.5 text-sm rounded-xl border-2 border-gray-100 text-gray-600 hover:border-indigo-200 transition font-medium" data-type="소주">🍶 소주</button>
+            <button type="button" class="drink-btn py-2.5 text-sm rounded-xl border-2 border-gray-100 text-gray-600 hover:border-indigo-200 transition font-medium" data-type="맥주">🍺 맥주</button>
+            <button type="button" class="drink-btn py-2.5 text-sm rounded-xl border-2 border-gray-100 text-gray-600 hover:border-indigo-200 transition font-medium" data-type="와인">🍷 와인</button>
+            <button type="button" class="drink-btn py-2.5 text-sm rounded-xl border-2 border-gray-100 text-gray-600 hover:border-indigo-200 transition font-medium" data-type="막걸리">🍵 막걸리</button>
+            <button type="button" class="drink-btn py-2.5 text-sm rounded-xl border-2 border-gray-100 text-gray-600 hover:border-indigo-200 transition font-medium" data-type="양주">🥃 양주</button>
+            <button type="button" class="drink-btn py-2.5 text-sm rounded-xl border-2 border-gray-100 text-gray-600 hover:border-indigo-200 transition font-medium" data-type="기타">🫙 기타</button>
+          </div>
+          <input type="hidden" id="drinkType">
+        </div>
+
+        <!-- 음주량 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-2.5">음주량</label>
+          <div class="flex items-center gap-3">
+            <button type="button" id="minusBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 text-xl font-bold transition">−</button>
+            <div class="flex-1 text-center">
+              <span id="glassesDisplay" class="text-3xl font-bold text-gray-800">1</span>
+              <span class="text-sm text-gray-400 ml-1">잔</span>
+            </div>
+            <button type="button" id="plusBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 text-xl font-bold transition">+</button>
+          </div>
+          <input type="hidden" id="glasses" value="1">
+        </div>
+
+        <!-- 메모 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-2.5">메모 <span class="text-gray-300 font-normal">(선택)</span></label>
+          <textarea id="memo" rows="2" placeholder="어디서, 누구와 마셨는지..."
+            class="w-full border border-gray-100 bg-gray-50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:bg-white transition resize-none"></textarea>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="flex gap-2 pt-1">
+          <button type="button" id="deleteBtn"
+            class="px-4 py-3 text-sm text-red-400 border border-red-100 rounded-xl hover:bg-red-50 transition hidden">
+            삭제
+          </button>
+          <button type="submit"
+            class="flex-1 py-3 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:scale-95 transition">
+            저장하기
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const today = new Date();
+    const todayStr = formatDate(today);
+    let currentYear = today.getFullYear();
+    let currentMonth = today.getMonth();
+    let recordsByDate = {};
+    let glassesCount = 1;
+    let selectedType = '';
+
+    const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+    const MONTH_NAMES = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+    function formatDate(d) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function dotColor(g) {
+      if (g >= 6) return 'bg-red-500';
+      if (g >= 3) return 'bg-orange-500';
+      return 'bg-amber-400';
+    }
+
+    function cellBg(g) {
+      if (g >= 6) return 'bg-red-50 hover:bg-red-100';
+      if (g >= 3) return 'bg-orange-50 hover:bg-orange-100';
+      if (g >= 1) return 'bg-amber-50 hover:bg-amber-100';
+      return 'hover:bg-gray-50';
+    }
+
+    async function loadMonth() {
+      const y = currentYear;
+      const m = String(currentMonth + 1).padStart(2, '0');
+      const lastDay = new Date(y, currentMonth + 1, 0).getDate();
+
+      const { data } = await sb
+        .from('alcohol_records')
+        .select('*')
+        .gte('date', `${y}-${m}-01`)
+        .lte('date', `${y}-${m}-${lastDay}`);
+
+      recordsByDate = {};
+      (data || []).forEach(r => { recordsByDate[r.date] = r; });
+      renderCalendar();
+      renderSummary();
+    }
+
+    function renderCalendar() {
+      document.getElementById('monthLabel').textContent = `${currentYear}년 ${MONTH_NAMES[currentMonth]}`;
+
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="day-cell"></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const rec = recordsByDate[dateStr];
+        const dow = (firstDay + d - 1) % 7;
+        const isToday = dateStr === todayStr;
+        const isSun = dow === 0;
+        const isSat = dow === 6;
+
+        const numColor = isSun ? 'text-red-400' : isSat ? 'text-blue-400' : 'text-gray-700';
+        const todayStyle = isToday
+          ? 'ring-2 ring-indigo-500 ring-offset-1 rounded-xl'
+          : '';
+
+        grid.innerHTML += `
+          <div class="day-cell flex flex-col items-center justify-start pt-2 pb-1 px-1 cursor-pointer rounded-xl transition ${cellBg(rec?.glasses || 0)} ${todayStyle}"
+               onclick="openModal('${dateStr}')">
+            <span class="text-sm ${numColor} ${isToday ? 'font-bold' : 'font-medium'} leading-none">${d}</span>
+            <div class="mt-1.5 h-2">
+              ${rec ? `<span class="w-2 h-2 rounded-full ${dotColor(rec.glasses)} inline-block"></span>` : ''}
+            </div>
+            ${rec ? `<span class="text-xs text-gray-400 leading-none mt-0.5">${rec.glasses}</span>` : ''}
+          </div>`;
+      }
+    }
+
+    function renderSummary() {
+      const recs = Object.values(recordsByDate);
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      document.getElementById('monthDrinkDays').textContent = recs.length;
+      document.getElementById('monthTotalGlasses').textContent = recs.reduce((s, r) => s + r.glasses, 0);
+      document.getElementById('monthSoberDays').textContent = daysInMonth - recs.length;
+    }
+
+    function openModal(dateStr) {
+      const rec = recordsByDate[dateStr];
+      const [y, m, d] = dateStr.split('-');
+      const dow = new Date(dateStr).getDay();
+
+      document.getElementById('modalTitle').textContent = `${parseInt(m)}월 ${parseInt(d)}일 기록`;
+      document.getElementById('modalDay').textContent = DAY_NAMES[dow] + '요일';
+      document.getElementById('recordDate').value = dateStr;
+      document.getElementById('recordId').value = rec?.id || '';
+      document.getElementById('memo').value = rec?.memo || '';
+
+      glassesCount = rec?.glasses || 1;
+      document.getElementById('glasses').value = glassesCount;
+      document.getElementById('glassesDisplay').textContent = glassesCount;
+
+      selectedType = rec?.drink_type || '';
+      document.getElementById('drinkType').value = selectedType;
+      document.querySelectorAll('.drink-btn').forEach(btn => {
+        const active = btn.dataset.type === selectedType;
+        btn.className = btn.className
+          .replace('border-indigo-500 bg-indigo-50 text-indigo-700', '')
+          .replace('border-gray-100 text-gray-600', '');
+        if (active) {
+          btn.className += ' border-indigo-500 bg-indigo-50 text-indigo-700';
+        } else {
+          btn.className += ' border-gray-100 text-gray-600';
+        }
+      });
+
+      document.getElementById('deleteBtn').classList.toggle('hidden', !rec);
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    // 주종 버튼 클릭
+    document.querySelectorAll('.drink-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedType = btn.dataset.type;
+        document.getElementById('drinkType').value = selectedType;
+        document.querySelectorAll('.drink-btn').forEach(b => {
+          b.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+          b.classList.add('border-gray-100', 'text-gray-600');
+        });
+        btn.classList.remove('border-gray-100', 'text-gray-600');
+        btn.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+      });
+    });
+
+    // 잔 수 증감
+    document.getElementById('plusBtn').addEventListener('click', () => {
+      if (glassesCount < 30) glassesCount++;
+      document.getElementById('glasses').value = glassesCount;
+      document.getElementById('glassesDisplay').textContent = glassesCount;
+    });
+    document.getElementById('minusBtn').addEventListener('click', () => {
+      if (glassesCount > 1) glassesCount--;
+      document.getElementById('glasses').value = glassesCount;
+      document.getElementById('glassesDisplay').textContent = glassesCount;
+    });
+
+    // 저장
+    document.getElementById('recordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('recordId').value;
+      const date = document.getElementById('recordDate').value;
+      const drinkType = document.getElementById('drinkType').value;
+      const glasses = parseInt(document.getElementById('glasses').value);
+      const memo = document.getElementById('memo').value.trim();
+
+      if (!drinkType) { alert('주종을 선택해주세요.'); return; }
+
+      const payload = { date, drink_type: drinkType, glasses, memo, updated_at: new Date().toISOString() };
+      let error;
+
+      if (id) {
+        ({ error } = await sb.from('alcohol_records').update(payload).eq('id', id));
+      } else {
+        ({ error } = await sb.from('alcohol_records').insert(payload));
+      }
+
+      if (error) { alert('저장 실패: ' + error.message); return; }
+      closeModal();
+      await loadMonth();
+    });
+
+    // 삭제
+    document.getElementById('deleteBtn').addEventListener('click', async () => {
+      if (!confirm('이 기록을 삭제할까요?')) return;
+      const id = document.getElementById('recordId').value;
+      const { error } = await sb.from('alcohol_records').delete().eq('id', id);
+      if (error) { alert('삭제 실패: ' + error.message); return; }
+      closeModal();
+      await loadMonth();
+    });
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    document.getElementById('closeModal').addEventListener('click', closeModal);
+    document.getElementById('modal').addEventListener('click', e => {
+      if (e.target === document.getElementById('modal')) closeModal();
+    });
+
+    // 월 이동
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (currentMonth === 0) { currentMonth = 11; currentYear--; }
+      else currentMonth--;
+      loadMonth();
+    });
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (currentMonth === 11) { currentMonth = 0; currentYear++; }
+      else currentMonth++;
+      loadMonth();
+    });
+    document.getElementById('todayBtn').addEventListener('click', () => {
+      currentYear = today.getFullYear();
+      currentMonth = today.getMonth();
+      loadMonth();
+    });
+
+    loadMonth();
+  </script>
+</body>
+</html>
