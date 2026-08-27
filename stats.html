@@ -59,8 +59,8 @@
           <div><span id="thisMonthGlasses" class="text-2xl font-bold text-[#fbbf24]">0</span><span class="text-sm text-[#8b93ac]">잔</span></div>
         </div>
         <div class="card rounded-2xl py-4 px-3 text-center">
-          <div class="text-xs text-[#8b93ac] mb-1">절주율</div>
-          <div><span id="soberRate" class="text-2xl font-bold text-[#34d399]">0</span><span class="text-sm text-[#8b93ac]">%</span></div>
+          <div class="text-xs text-[#8b93ac] mb-1">음주율</div>
+          <div><span id="soberRate" class="text-2xl font-bold text-[#fb7185]">0</span><span class="text-sm text-[#8b93ac]">%</span></div>
         </div>
       </div>
 
@@ -128,8 +128,8 @@
       document.getElementById('thisMonthGlasses').textContent = thisMonth.reduce((s,r) => s + (r.glasses||0), 0);
 
       const elapsedDays = Math.min(today.getDate(), daysInMonth);
-      const soberRate = elapsedDays > 0 ? Math.round((elapsedDays - thisMonth.length) / elapsedDays * 100) : 100;
-      document.getElementById('soberRate').textContent = soberRate;
+      const drinkRate = elapsedDays > 0 ? Math.round(thisMonth.length / elapsedDays * 100) : 0;
+      document.getElementById('soberRate').textContent = drinkRate;
     }
 
     function renderMonthlyChart(records, today) {
