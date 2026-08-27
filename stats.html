@@ -8,68 +8,76 @@
   <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    body { background: #0a0c18; }
+    .card { background: #12142a; border: 1px solid rgba(255,255,255,0.06); }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen text-white">
 
-  <!-- 헤더 -->
-  <header class="bg-white shadow-sm sticky top-0 z-20">
-    <div class="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
-      <h1 class="text-lg font-bold text-indigo-600">🍶 음주 기록</h1>
-      <nav class="flex gap-1">
-        <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition">달력</a>
-        <a href="stats.html" class="px-3 py-1.5 text-sm font-semibold bg-indigo-50 text-indigo-600 rounded-lg">통계</a>
-        <button id="logoutBtn" class="px-3 py-1.5 text-sm text-gray-400 hover:bg-gray-100 rounded-lg transition">로그아웃</button>
-      </nav>
-    </div>
-  </header>
+  <main class="max-w-lg mx-auto px-4 py-6 space-y-4">
 
-  <main class="max-w-lg mx-auto px-4 py-5 space-y-4">
+    <!-- 헤더 -->
+    <header class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7c6cf7] to-[#4f7cf7] flex items-center justify-center text-2xl shadow-lg shadow-indigo-900/40">
+          📊
+        </div>
+        <div>
+          <h1 class="text-xl font-bold leading-tight">통계</h1>
+          <p class="text-sm text-[#8b93ac] leading-tight">나의 음주 패턴</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="w-11 h-11 rounded-full card flex items-center justify-center hover:bg-white/5 transition">
+          <svg class="w-5 h-5 text-[#8b93ac]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </a>
+        <button id="logoutBtn" class="w-11 h-11 rounded-full card flex items-center justify-center hover:bg-white/5 transition" title="로그아웃">
+          <svg class="w-5 h-5 text-[#8b93ac]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+        </button>
+      </div>
+    </header>
 
-    <!-- 로딩 상태 -->
-    <div id="loadingState" class="text-center py-12 text-gray-400 text-sm">데이터 불러오는 중...</div>
+    <!-- 로딩 -->
+    <div id="loadingState" class="text-center py-12 text-[#8b93ac] text-sm">데이터 불러오는 중...</div>
 
-    <!-- 콘텐츠 (로딩 후 표시) -->
+    <!-- 콘텐츠 -->
     <div id="content" class="hidden space-y-4">
 
       <!-- 요약 카드 3개 -->
       <div class="grid grid-cols-3 gap-3">
-        <div class="bg-white rounded-2xl shadow-sm p-4">
-          <p class="text-xs text-gray-400 mb-1">이번 달 음주일</p>
-          <div class="flex items-end gap-1">
-            <span id="thisMonthDays" class="text-3xl font-bold text-indigo-600">0</span>
-            <span class="text-sm text-gray-400 mb-0.5">일</span>
-          </div>
+        <div class="card rounded-2xl py-4 px-3 text-center">
+          <div class="text-xs text-[#8b93ac] mb-1">이번 달 음주일</div>
+          <div><span id="thisMonthDays" class="text-2xl font-bold text-[#fb7185]">0</span><span class="text-sm text-[#8b93ac]">일</span></div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-4">
-          <p class="text-xs text-gray-400 mb-1">이번 달 총 음주량</p>
-          <div class="flex items-end gap-1">
-            <span id="thisMonthGlasses" class="text-3xl font-bold text-amber-500">0</span>
-            <span class="text-sm text-gray-400 mb-0.5">잔</span>
-          </div>
+        <div class="card rounded-2xl py-4 px-3 text-center">
+          <div class="text-xs text-[#8b93ac] mb-1">총 음주량</div>
+          <div><span id="thisMonthGlasses" class="text-2xl font-bold text-[#fbbf24]">0</span><span class="text-sm text-[#8b93ac]">잔</span></div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-4">
-          <p class="text-xs text-gray-400 mb-1">이번 달 절주율</p>
-          <div class="flex items-end gap-1">
-            <span id="soberRate" class="text-3xl font-bold text-green-500">0</span>
-            <span class="text-sm text-gray-400 mb-0.5">%</span>
-          </div>
+        <div class="card rounded-2xl py-4 px-3 text-center">
+          <div class="text-xs text-[#8b93ac] mb-1">절주율</div>
+          <div><span id="soberRate" class="text-2xl font-bold text-[#34d399]">0</span><span class="text-sm text-[#8b93ac]">%</span></div>
         </div>
       </div>
 
-      <!-- 월별 음주일 추이 -->
-      <div class="bg-white rounded-2xl shadow-sm p-5">
+      <!-- 월별 추이 차트 -->
+      <div class="card rounded-3xl p-5">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-semibold text-gray-700">월별 음주일 추이</h3>
-          <span class="text-xs text-gray-400">최근 6개월</span>
+          <h3 class="text-sm font-semibold">월별 음주일 추이</h3>
+          <span class="text-xs text-[#8b93ac]">최근 6개월</span>
         </div>
         <div class="relative" style="height: 180px;">
           <canvas id="monthlyChart"></canvas>
         </div>
       </div>
 
-      <!-- 최근 기록 목록 -->
-      <div class="bg-white rounded-2xl shadow-sm p-5">
-        <h3 class="text-sm font-semibold text-gray-700 mb-3">최근 기록</h3>
+      <!-- 최근 기록 -->
+      <div class="card rounded-3xl p-5">
+        <h3 class="text-sm font-semibold mb-3">최근 기록</h3>
         <div id="recentList"></div>
       </div>
 
@@ -80,7 +88,6 @@
     const { createClient } = supabase;
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // 인증 체크
     sb.auth.getSession().then(({ data: { session } }) => {
       if (!session) window.location.href = 'login.html';
     });
@@ -102,7 +109,7 @@
       document.getElementById('content').classList.remove('hidden');
 
       if (error) {
-        document.getElementById('content').innerHTML = `<p class="text-center text-red-400 text-sm py-8">데이터 로드 실패: ${error.message}</p>`;
+        document.getElementById('content').innerHTML = `<p class="text-center text-[#fb7185] text-sm py-8">데이터 로드 실패: ${error.message}</p>`;
         return;
       }
 
@@ -142,7 +149,7 @@
           labels,
           datasets: [{
             data: counts,
-            backgroundColor: counts.map((_, i) => i === 5 ? 'rgba(99,102,241,0.85)' : 'rgba(99,102,241,0.35)'),
+            backgroundColor: counts.map((_, i) => i === 5 ? 'rgba(124,108,247,0.85)' : 'rgba(124,108,247,0.3)'),
             borderRadius: 8,
             borderSkipped: false,
           }]
@@ -156,12 +163,12 @@
           scales: {
             y: {
               beginAtZero: true,
-              ticks: { stepSize: 1, color: '#9ca3af', font: { size: 11 } },
-              grid: { color: 'rgba(0,0,0,0.04)' },
+              ticks: { stepSize: 1, color: '#8b93ac', font: { size: 11 } },
+              grid: { color: 'rgba(255,255,255,0.04)' },
               border: { display: false }
             },
             x: {
-              ticks: { color: '#9ca3af', font: { size: 11 } },
+              ticks: { color: '#8b93ac', font: { size: 11 } },
               grid: { display: false },
               border: { display: false }
             }
@@ -175,24 +182,20 @@
       const recent = records.slice(0, 12);
 
       if (recent.length === 0) {
-        list.innerHTML = '<p class="text-sm text-gray-300 text-center py-4">기록이 없습니다.</p>';
+        list.innerHTML = '<p class="text-sm text-[#8b93ac] text-center py-4">기록이 없습니다.</p>';
         return;
       }
 
       list.innerHTML = recent.map(r => {
         const [y,m,d] = r.date.split('-');
         const dow = new Date(r.date + 'T00:00:00').getDay();
-        const glasses = r.glasses || 0;
-        const dotCls = glasses >= 6 ? 'bg-red-400' : glasses >= 3 ? 'bg-orange-400' : 'bg-amber-400';
 
         return `
-          <div class="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
-            <div class="text-xs text-gray-400 w-16 flex-none text-right">${parseInt(m)}/${parseInt(d)} ${DAY_NAMES[dow]}</div>
-            <span class="w-2 h-2 rounded-full ${dotCls} flex-none"></span>
-            <div class="flex items-center gap-1.5 flex-1 min-w-0">
-              <span class="text-sm font-medium text-gray-700">${r.glasses}잔</span>
-            </div>
-            ${r.memo ? `<span class="text-xs text-gray-300 truncate max-w-20">${r.memo}</span>` : ''}
+          <div class="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0">
+            <div class="text-xs text-[#8b93ac] w-16 flex-none text-right">${parseInt(m)}/${parseInt(d)} ${DAY_NAMES[dow]}</div>
+            <span class="w-2 h-2 rounded-full bg-[#fb7185] flex-none"></span>
+            <div class="flex-1 text-sm font-medium">${r.glasses}잔</div>
+            ${r.memo ? `<span class="text-xs text-[#8b93ac] truncate max-w-24">${r.memo}</span>` : ''}
           </div>`;
       }).join('');
     }
