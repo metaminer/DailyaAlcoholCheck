@@ -36,11 +36,18 @@
           <p class="text-sm text-[#8b93ac] leading-tight">오늘도 나를 기록해요</p>
         </div>
       </div>
-      <a href="stats.html" class="w-11 h-11 rounded-full card flex items-center justify-center hover:bg-white/5 transition">
-        <svg class="w-5 h-5 text-[#8b93ac]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
-        </svg>
-      </a>
+      <div class="flex items-center gap-2">
+        <a href="stats.html" class="w-11 h-11 rounded-full card flex items-center justify-center hover:bg-white/5 transition">
+          <svg class="w-5 h-5 text-[#8b93ac]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+          </svg>
+        </a>
+        <button id="logoutBtn" class="w-11 h-11 rounded-full card flex items-center justify-center hover:bg-white/5 transition" title="로그아웃">
+          <svg class="w-5 h-5 text-[#8b93ac]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+        </button>
+      </div>
     </header>
 
     <!-- 월 네비게이션 + 요약 -->
@@ -170,6 +177,11 @@
   <script>
     const { createClient } = supabase;
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 인증 체크
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (!session) window.location.href = 'login.html';
+    });
 
     const today = new Date();
     const todayStr = formatDate(today);
@@ -340,6 +352,11 @@
       currentYear = today.getFullYear();
       currentMonth = today.getMonth();
       loadMonth();
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await sb.auth.signOut();
+      window.location.href = 'login.html';
     });
 
     loadMonth();

@@ -18,6 +18,7 @@
       <nav class="flex gap-1">
         <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition">달력</a>
         <a href="stats.html" class="px-3 py-1.5 text-sm font-semibold bg-indigo-50 text-indigo-600 rounded-lg">통계</a>
+        <button id="logoutBtn" class="px-3 py-1.5 text-sm text-gray-400 hover:bg-gray-100 rounded-lg transition">로그아웃</button>
       </nav>
     </div>
   </header>
@@ -78,6 +79,11 @@
   <script>
     const { createClient } = supabase;
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 인증 체크
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (!session) window.location.href = 'login.html';
+    });
 
     const DAY_NAMES = ['일','월','화','수','목','금','토'];
 
@@ -190,6 +196,11 @@
           </div>`;
       }).join('');
     }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await sb.auth.signOut();
+      window.location.href = 'login.html';
+    });
 
     loadStats();
   </script>
