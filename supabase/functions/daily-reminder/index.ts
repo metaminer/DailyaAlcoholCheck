@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
   }
 
   // 텔레그램 메시지 발송
-  const message = `📅 *음주달력 리마인더*\n\n오늘 기록이 아직 없어요.\n음주 여부를 기록해보세요!`;
+  const message = `📅 *음주달력 리마인더*\n\n오늘 기록이 아직 없어요\\.\n음주 여부를 기록해보세요\\!\n\n[👉 기록하러 가기](https://dailya-alcohol-check\\.vercel\\.app)`;
 
   const res = await fetch(
     `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         chat_id: TELEGRAM_CHAT_ID,
         text: message,
-        parse_mode: 'Markdown',
+        parse_mode: 'MarkdownV2',
       }),
     }
   );
