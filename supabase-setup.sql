@@ -4,7 +4,6 @@
 CREATE TABLE IF NOT EXISTS alcohol_records (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   date DATE NOT NULL UNIQUE,
-  drink_type TEXT NOT NULL,
   glasses INTEGER NOT NULL CHECK (glasses > 0 AND glasses <= 50),
   memo TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),

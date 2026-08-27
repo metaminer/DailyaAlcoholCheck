@@ -30,8 +30,8 @@
     <!-- 콘텐츠 (로딩 후 표시) -->
     <div id="content" class="hidden space-y-4">
 
-      <!-- 요약 카드 4개 -->
-      <div class="grid grid-cols-2 gap-3">
+      <!-- 요약 카드 3개 -->
+      <div class="grid grid-cols-3 gap-3">
         <div class="bg-white rounded-2xl shadow-sm p-4">
           <p class="text-xs text-gray-400 mb-1">이번 달 음주일</p>
           <div class="flex items-end gap-1">
@@ -53,13 +53,6 @@
             <span class="text-sm text-gray-400 mb-0.5">%</span>
           </div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-4">
-          <p class="text-xs text-gray-400 mb-1">가장 많이 마신 주종</p>
-          <div class="flex items-end gap-1">
-            <span id="favDrink" class="text-2xl font-bold text-purple-600">-</span>
-          </div>
-          <p class="text-xs text-gray-300 mt-0.5">이번 달 기준</p>
-        </div>
       </div>
 
       <!-- 월별 음주일 추이 -->
@@ -70,21 +63,6 @@
         </div>
         <div class="relative" style="height: 180px;">
           <canvas id="monthlyChart"></canvas>
-        </div>
-      </div>
-
-      <!-- 주종 분포 -->
-      <div class="bg-white rounded-2xl shadow-sm p-5">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-semibold text-gray-700">주종 분포</h3>
-          <span class="text-xs text-gray-400">최근 3개월</span>
-        </div>
-        <div id="noTypeData" class="hidden text-center py-6 text-gray-300 text-sm">기록 없음</div>
-        <div id="typeChartArea" class="flex items-center gap-5">
-          <div class="flex-none" style="width:140px; height:140px; position:relative;">
-            <canvas id="typeChart"></canvas>
-          </div>
-          <div id="typeLegend" class="flex-1 space-y-2 text-sm"></div>
         </div>
       </div>
 
@@ -101,15 +79,6 @@
     const { createClient } = supabase;
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const DRINK_COLORS = {
-      '소주': '#6366f1',
-      '맥주': '#f59e0b',
-      '와인': '#ec4899',
-      '막걸리': '#10b981',
-      '양주': '#8b5cf6',
-      '기타': '#94a3b8',
-    };
-    const EMOJIS = { '소주':'🍶','맥주':'🍺','와인':'🍷','막걸리':'🍵','양주':'🥃','기타':'🫙' };
     const DAY_NAMES = ['일','월','화','수','목','금','토'];
 
     async function loadStats() {
@@ -134,7 +103,6 @@
       const records = data || [];
       renderSummary(records, today);
       renderMonthlyChart(records, today);
-      renderTypeChart(records, today);
       renderRecentList(records);
     }
 
@@ -149,11 +117,6 @@
       const elapsedDays = Math.min(today.getDate(), daysInMonth);
       const soberRate = elapsedDays > 0 ? Math.round((elapsedDays - thisMonth.length) / elapsedDays * 100) : 100;
       document.getElementById('soberRate').textContent = soberRate;
-
-      const typeCounts = {};
-      thisMonth.forEach(r => { typeCounts[r.drink_type] = (typeCounts[r.drink_type]||0) + 1; });
-      const fav = Object.entries(typeCounts).sort((a,b) => b[1]-a[1])[0];
-      document.getElementById('favDrink').textContent = fav ? (EMOJIS[fav[0]] + ' ' + fav[0]) : '-';
     }
 
     function renderMonthlyChart(records, today) {
@@ -201,51 +164,6 @@
       });
     }
 
-    function renderTypeChart(records, today) {
-      const threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 2, 1);
-      const startStr = threeMonthsAgo.toISOString().split('T')[0];
-      const recent = records.filter(r => r.date >= startStr);
-
-      if (recent.length === 0) {
-        document.getElementById('typeChartArea').classList.add('hidden');
-        document.getElementById('noTypeData').classList.remove('hidden');
-        return;
-      }
-
-      const typeCounts = {};
-      recent.forEach(r => { typeCounts[r.drink_type] = (typeCounts[r.drink_type]||0) + 1; });
-      const sorted = Object.entries(typeCounts).sort((a,b) => b[1]-a[1]);
-      const types = sorted.map(([t]) => t);
-      const counts = sorted.map(([,c]) => c);
-      const colors = types.map(t => DRINK_COLORS[t] || '#94a3b8');
-      const total = counts.reduce((a,b) => a+b, 0);
-
-      new Chart(document.getElementById('typeChart'), {
-        type: 'doughnut',
-        data: {
-          labels: types,
-          datasets: [{ data: counts, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
-        },
-        options: {
-          responsive: false,
-          cutout: '65%',
-          plugins: { legend: { display: false }, tooltip: {
-            callbacks: { label: ctx => ` ${ctx.raw}회 (${Math.round(ctx.raw/total*100)}%)` }
-          }}
-        }
-      });
-
-      document.getElementById('typeLegend').innerHTML = types.map((t, i) => `
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full flex-none" style="background:${colors[i]}"></span>
-            <span class="text-gray-700">${EMOJIS[t] || ''} ${t}</span>
-          </div>
-          <span class="text-gray-400 text-xs">${Math.round(counts[i]/total*100)}%</span>
-        </div>
-      `).join('');
-    }
-
     function renderRecentList(records) {
       const list = document.getElementById('recentList');
       const recent = records.slice(0, 12);
@@ -266,8 +184,7 @@
             <div class="text-xs text-gray-400 w-16 flex-none text-right">${parseInt(m)}/${parseInt(d)} ${DAY_NAMES[dow]}</div>
             <span class="w-2 h-2 rounded-full ${dotCls} flex-none"></span>
             <div class="flex items-center gap-1.5 flex-1 min-w-0">
-              <span class="text-sm font-medium text-gray-700">${EMOJIS[r.drink_type]||''} ${r.drink_type}</span>
-              <span class="text-sm text-gray-400">${r.glasses}잔</span>
+              <span class="text-sm font-medium text-gray-700">${r.glasses}잔</span>
             </div>
             ${r.memo ? `<span class="text-xs text-gray-300 truncate max-w-20">${r.memo}</span>` : ''}
           </div>`;
