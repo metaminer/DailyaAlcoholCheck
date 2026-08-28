@@ -50,8 +50,8 @@ Deno.serve(async (req) => {
     `🍶 음주일: *${drinkDays}일* / ${daysInPrevMonth}일`,
     `🌿 절주일: *${soberDays}일*`,
     `📈 음주율: *${drinkRate}%*`,
-    `🥃 총 음주량: *${totalGlasses}잔*`,
-    `📉 음주일 평균: *${avgGlasses}잔*`,
+    `🥃 총 음주량: *${totalGlasses}캔*`,
+    `📉 음주일 평균: *${avgGlasses}캔*`,
     ``,
     `[👉 통계 자세히 보기](https://dailya\\-alcohol\\-check\\.vercel\\.app/stats\\.html)`,
   ].join('\n');

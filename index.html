@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>음주달력</title>
+  <title>AlcoholCalendar</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%BB%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -69,7 +70,7 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-3 gap-3">
         <div class="bg-white/5 rounded-2xl py-3 text-center">
           <div class="text-xs text-[#8b93ac] mb-1">음주일</div>
           <div><span id="monthDrinkDays" class="text-2xl font-bold text-[#fb7185]">0</span><span class="text-sm text-[#8b93ac]">일</span></div>
@@ -77,6 +78,10 @@
         <div class="bg-white/5 rounded-2xl py-3 text-center">
           <div class="text-xs text-[#8b93ac] mb-1">절주일</div>
           <div><span id="monthSoberDays" class="text-2xl font-bold text-[#34d399]">0</span><span class="text-sm text-[#8b93ac]">일</span></div>
+        </div>
+        <div class="bg-white/5 rounded-2xl py-3 text-center">
+          <div class="text-xs text-[#8b93ac] mb-1">총 음주량</div>
+          <div><span id="monthTotalGlasses" class="text-2xl font-bold text-[#fbbf24]">0</span><span class="text-sm text-[#8b93ac]">캔</span></div>
         </div>
       </div>
     </div>
@@ -138,7 +143,7 @@
             <button type="button" id="minusBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-[#c3c8db] hover:bg-white/10 text-xl font-bold transition">−</button>
             <div class="flex-1 text-center">
               <span id="glassesDisplay" class="text-3xl font-bold">1</span>
-              <span class="text-sm text-[#8b93ac] ml-1">잔</span>
+              <span class="text-sm text-[#8b93ac] ml-1">캔</span>
             </div>
             <button type="button" id="plusBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-[#c3c8db] hover:bg-white/10 text-xl font-bold transition">+</button>
           </div>
@@ -277,7 +282,7 @@
       document.getElementById('modal').classList.remove('hidden');
     }
 
-    // 잔 수 증감
+    // 캔(병) 수 증감
     document.getElementById('plusBtn').addEventListener('click', () => {
       if (glassesCount < 30) glassesCount++;
       document.getElementById('glasses').value = glassesCount;

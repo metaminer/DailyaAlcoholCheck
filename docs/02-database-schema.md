@@ -11,7 +11,7 @@ Supabase (PostgreSQL)
 |--------|------|----------|------|
 | `id` | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | 고유 식별자 |
 | `date` | DATE | NOT NULL, UNIQUE | 기록 날짜 (하루에 1건만 허용) |
-| `glasses` | INTEGER | NOT NULL, CHECK (1~50) | 음주량 (잔 단위) |
+| `glasses` | INTEGER | NOT NULL, CHECK (1~50) | 음주량 (캔 단위) |
 | `memo` | TEXT | nullable | 메모 (선택 입력) |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | 최초 생성 시각 |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | 마지막 수정 시각 |

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>음주 통계</title>
+  <title>AlcoholCalendar</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%BB%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -56,7 +57,7 @@
         </div>
         <div class="card rounded-2xl py-4 px-3 text-center">
           <div class="text-xs text-[#8b93ac] mb-1">총 음주량</div>
-          <div><span id="thisMonthGlasses" class="text-2xl font-bold text-[#fbbf24]">0</span><span class="text-sm text-[#8b93ac]">잔</span></div>
+          <div><span id="thisMonthGlasses" class="text-2xl font-bold text-[#fbbf24]">0</span><span class="text-sm text-[#8b93ac]">캔</span></div>
         </div>
         <div class="card rounded-2xl py-4 px-3 text-center">
           <div class="text-xs text-[#8b93ac] mb-1">음주율</div>
@@ -194,7 +195,7 @@
           <div class="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0">
             <div class="text-xs text-[#8b93ac] w-16 flex-none text-right">${parseInt(m)}/${parseInt(d)} ${DAY_NAMES[dow]}</div>
             <span class="w-2 h-2 rounded-full bg-[#fb7185] flex-none"></span>
-            <div class="flex-1 text-sm font-medium">${r.glasses}잔</div>
+            <div class="flex-1 text-sm font-medium">${r.glasses}캔</div>
             ${r.memo ? `<span class="text-xs text-[#8b93ac] truncate max-w-24">${r.memo}</span>` : ''}
           </div>`;
       }).join('');
