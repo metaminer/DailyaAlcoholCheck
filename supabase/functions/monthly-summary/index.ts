@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     `🌿 절주일: *${soberDays}일*`,
     `📈 음주율: *${drinkRate}%*`,
     `🥃 총 음주량: *${totalGlasses}캔*`,
-    `📉 음주일 평균: *${avgGlasses}캔*`,
+    `📉 음주일 평균: *${avgGlasses.replace('.', '\\.')}캔*`,
     ``,
     `[👉 통계 자세히 보기](https://dailya\\-alcohol\\-check\\.vercel\\.app/stats\\.html)`,
   ].join('\n');
@@ -70,7 +70,8 @@ Deno.serve(async (req) => {
   );
 
   const result = await res.json();
-  return new Response(JSON.stringify({ sent: true, month: monthLabel, drinkDays, telegram: result }), {
+  return new Response(JSON.stringify({ sent: result.ok === true, month: monthLabel, drinkDays, telegram: result }), {
+    status: res.ok ? 200 : 502,
     headers: { 'Content-Type': 'application/json' },
   });
 });

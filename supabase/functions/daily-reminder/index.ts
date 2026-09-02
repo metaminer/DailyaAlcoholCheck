@@ -49,7 +49,8 @@ Deno.serve(async (req) => {
   );
 
   const result = await res.json();
-  return new Response(JSON.stringify({ sent: true, telegram: result }), {
+  return new Response(JSON.stringify({ sent: result.ok === true, telegram: result }), {
+    status: res.ok ? 200 : 502,
     headers: { 'Content-Type': 'application/json' },
   });
 });
