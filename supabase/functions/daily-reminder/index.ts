@@ -16,8 +16,9 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
 
-  // 한국 시간 기준 오늘 날짜
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+  // 한국 시간 기준 어제 날짜 (아침 알림은 전날 기록을 위한 것)
+  const today = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    .toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
 
   const { data } = await sb
     .from('alcohol_records')
@@ -33,7 +34,7 @@ Deno.serve(async (req) => {
   }
 
   // 텔레그램 메시지 발송
-  const message = `📅 *음주달력 리마인더*\n\n오늘 기록이 아직 없어요\\.\n오늘 술을 드셨나요\\?\n\n[👉 앱에서 기록하기](https://dailya-alcohol-check\\.vercel\\.app)`;
+  const message = `📅 *음주달력 리마인더*\n\n어제\\(${today.slice(5).replace('-', '/')}\\) 기록이 아직 없어요\\.\n어제 술을 드셨나요\\?\n\n[👉 앱에서 기록하기](https://dailya-alcohol-check\\.vercel\\.app)`;
   // 버튼 콜백: telegram-webhook 함수가 처리 (y:날짜 = 1캔 기록, n:날짜 = 기록 없음)
   const keyboard = {
     inline_keyboard: [[
