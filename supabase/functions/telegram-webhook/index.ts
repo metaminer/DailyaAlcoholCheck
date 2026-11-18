@@ -4,6 +4,10 @@ const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')!;
 const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID')!;
 const WEBHOOK_SECRET = Deno.env.get('TELEGRAM_WEBHOOK_SECRET')!;
 
+const APP_URL = 'https://dailya-alcohol-check.vercel.app';
+const escapeHtml = (t: string) =>
+  t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 const tg = (method: string, body: unknown) =>
   fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${method}`, {
     method: 'POST',
@@ -36,6 +40,7 @@ Deno.serve(async (req) => {
   const [, answer, date] = m;
 
   let resultText: string;
+  let showLink = false;
 
   if (answer === 'n') {
     resultText = `🙅 ${date} 절주로 확인했어요. 기록 없이 넘어갑니다.`;
@@ -61,6 +66,7 @@ Deno.serve(async (req) => {
       resultText = error
         ? `⚠️ 기록 실패: ${error.message}`
         : `🍺 ${date} 1캔으로 기록했어요. 양은 앱에서 수정할 수 있어요.`;
+      showLink = !error;
     }
   }
 
@@ -69,7 +75,10 @@ Deno.serve(async (req) => {
   await tg('editMessageText', {
     chat_id: chatId,
     message_id: cb.message.message_id,
-    text: resultText,
+    text: escapeHtml(resultText) + (showLink ? `
+
+<a href="${APP_URL}">앱에서 확인하기</a>` : ''),
+    parse_mode: 'HTML',
   });
 
   return new Response('ok');
