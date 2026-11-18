@@ -26,6 +26,25 @@
 - **로직**: 지난달 전체 기록 집계 → 통계 요약 텔레그램 메시지 발송
 - **메시지 포함 항목**: 음주일, 절주일, 음주율, 총 음주량, 음주일 평균, 통계 페이지 링크
 
+### 3. `telegram-webhook`
+리마인더 메시지의 인라인 버튼(예/아니오) 클릭을 처리.
+
+- **트리거**: Telegram Webhook (`setWebhook`, `secret_token` 헤더로 인증 — JWT 검증 끔)
+- **예**: 해당 날짜에 1캔으로 기록 (메모: "텔레그램 간편 기록"). 이미 기록이 있으면 덮어쓰지 않음
+- **아니오**: 기록 없이 절주로 간주, 버튼 제거
+- 설정 채팅(`TELEGRAM_CHAT_ID`)에서 온 요청만 처리
+
+배포 및 웹훅 등록:
+
+```bash
+supabase secrets set TELEGRAM_WEBHOOK_SECRET=<임의 문자열>
+supabase functions deploy telegram-webhook --no-verify-jwt
+supabase functions deploy daily-reminder
+curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook" \
+  -d "url=https://yzmvfuekkjpwmissjisz.supabase.co/functions/v1/telegram-webhook" \
+  -d "secret_token=<위와 같은 문자열>"
+```
+
 ## Supabase Secrets
 
 | Key | 설명 |
@@ -33,6 +52,7 @@
 | `TELEGRAM_BOT_TOKEN` | BotFather에서 발급한 봇 토큰 |
 | `TELEGRAM_CHAT_ID` | 메시지 수신할 채팅 ID |
 | `CRON_SECRET` | cron-job.org 요청 인증용 임의 문자열 |
+| `TELEGRAM_WEBHOOK_SECRET` | 텔레그램 웹훅 요청 인증용 임의 문자열 |
 
 ## cron-job.org 설정
 

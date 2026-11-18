@@ -33,7 +33,14 @@ Deno.serve(async (req) => {
   }
 
   // 텔레그램 메시지 발송
-  const message = `📅 *음주달력 리마인더*\n\n오늘 기록이 아직 없어요\\.\n음주 여부를 기록해보세요\\!\n\n[👉 기록하러 가기](https://dailya-alcohol-check\\.vercel\\.app)`;
+  const message = `📅 *음주달력 리마인더*\n\n오늘 기록이 아직 없어요\\.\n오늘 술을 드셨나요\\?\n\n[👉 앱에서 기록하기](https://dailya-alcohol-check\\.vercel\\.app)`;
+  // 버튼 콜백: telegram-webhook 함수가 처리 (y:날짜 = 1캔 기록, n:날짜 = 기록 없음)
+  const keyboard = {
+    inline_keyboard: [[
+      { text: '🍺 예 (1캔 기록)', callback_data: `y:${today}` },
+      { text: '🙅 아니오', callback_data: `n:${today}` },
+    ]],
+  };
 
   const res = await fetch(
     `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
@@ -44,6 +51,7 @@ Deno.serve(async (req) => {
         chat_id: TELEGRAM_CHAT_ID,
         text: message,
         parse_mode: 'MarkdownV2',
+        reply_markup: keyboard,
       }),
     }
   );
